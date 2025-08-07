@@ -1,0 +1,5 @@
+langchain
+python-dotenv
+google-generativeai
+serpapi
+streamlit
