@@ -17,34 +17,97 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS for better styling
+# Enhanced CSS for better dark mode support
 st.markdown("""
 <style>
+    /* Main header styling */
     .main-header {
         font-size: 3rem;
-        color: #1f77b4;
         text-align: center;
         margin-bottom: 2rem;
+        background: linear-gradient(45deg, #2196f3, #9c27b0);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
     }
+    
+    /* Chat message base styling */
     .chat-message {
-        padding: 1rem;
-        border-radius: 0.5rem;
-        margin: 1rem 0;
-        display: flex;
-        align-items: center;
+        padding: 1rem 1.2rem;
+        border-radius: 1rem;
+        margin: 0.5rem 0;
+        display: block;
+        word-wrap: break-word;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        line-height: 1.5;
+        position: relative;
     }
+    
+    /* User message - chat bubble style */
     .user-message {
-        background-color: #e3f2fd;
-        border-left: 5px solid #2196f3;
+        background: linear-gradient(135deg, rgba(33, 150, 243, 0.15), rgba(33, 150, 243, 0.08));
+        border-left: none;
+        border: 1px solid rgba(33, 150, 243, 0.2);
+        border-radius: 1rem 1rem 0.2rem 1rem;
+        margin-left: auto;
     }
+    
+    /* Agent message - chat bubble style */
     .agent-message {
-        background-color: #f3e5f5;
-        border-left: 5px solid #9c27b0;
+        background: linear-gradient(135deg, rgba(156, 39, 176, 0.15), rgba(156, 39, 176, 0.08));
+        border-left: none;
+        border: 1px solid rgba(156, 39, 176, 0.2);
+        border-radius: 1rem 1rem 1rem 0.2rem;
+        margin-right: auto;
     }
+    
+    /* Sidebar styling */
     .sidebar-content {
-        background-color: #f8f9fa;
+        background: rgba(255, 255, 255, 0.05);
         padding: 1rem;
         border-radius: 0.5rem;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    /* Dark mode chat bubbles */
+    .stApp[data-theme="dark"] .user-message {
+        background: linear-gradient(135deg, rgba(33, 150, 243, 0.3), rgba(33, 150, 243, 0.2)) !important;
+        border-color: rgba(33, 150, 243, 0.4) !important;
+    }
+    
+    .stApp[data-theme="dark"] .agent-message {
+        background: linear-gradient(135deg, rgba(156, 39, 176, 0.3), rgba(156, 39, 176, 0.2)) !important;
+        border-color: rgba(156, 39, 176, 0.4) !important;
+    }
+    
+    /* Light mode chat bubbles */
+    .stApp[data-theme="light"] .user-message {
+        background: linear-gradient(135deg, rgba(33, 150, 243, 0.12), rgba(33, 150, 243, 0.06)) !important;
+        border-color: rgba(33, 150, 243, 0.25) !important;
+    }
+    
+    .stApp[data-theme="light"] .agent-message {
+        background: linear-gradient(135deg, rgba(156, 39, 176, 0.12), rgba(156, 39, 176, 0.06)) !important;
+        border-color: rgba(156, 39, 176, 0.25) !important;
+    }
+    
+    /* Chat container styling */
+    .chat-container {
+        max-height: 60vh;
+        overflow-y: auto;
+        padding: 1rem 0;
+    }
+    
+    /* Responsive chat bubbles */
+    @media (max-width: 768px) {
+        .chat-message {
+            max-width: 90% !important;
+            padding: 0.8rem 1rem;
+        }
+        
+        .main-header {
+            font-size: 2rem;
+        }
     }
 </style>
 """, unsafe_allow_html=True)
@@ -138,21 +201,36 @@ if llm and tools:
     with tab1:
         st.subheader("Chat with AI Agent")
         
-        # Display conversation history
-        for i, (user_msg, agent_msg) in enumerate(st.session_state.conversation_history):
-            st.markdown(f"""
-            <div class="chat-message user-message">
-                <strong>🧑 You:</strong> {user_msg}
-            </div>
-            """, unsafe_allow_html=True)
-            
-            st.markdown(f"""
-            <div class="chat-message agent-message">
-                <strong>🤖 Agent:</strong> {agent_msg}
-            </div>
-            """, unsafe_allow_html=True)
+        # Create a container for the chat messages
+        chat_container = st.container()
         
-        # Chat input
+        with chat_container:
+            # Display conversation history with better layout
+            for i, (user_msg, agent_msg) in enumerate(st.session_state.conversation_history):
+                # User message - aligned to the right
+                col1, col2 = st.columns([1, 4])
+                with col2:
+                    st.markdown(f"""
+                    <div class="chat-message user-message" style="margin-left: auto; max-width: 80%; text-align: left;">
+                        <strong>🧑 You:</strong><br>
+                        <span style="margin-top: 0.5rem; display: block; word-wrap: break-word; white-space: pre-wrap;">{user_msg}</span>
+                    </div>
+                    """, unsafe_allow_html=True)
+                
+                # Agent message - aligned to the left
+                col1, col2 = st.columns([4, 1])
+                with col1:
+                    st.markdown(f"""
+                    <div class="chat-message agent-message" style="max-width: 80%; text-align: left;">
+                        <strong>🤖 Agent:</strong><br>
+                        <span style="margin-top: 0.5rem; display: block; word-wrap: break-word; white-space: pre-wrap;">{agent_msg}</span>
+                    </div>
+                    """, unsafe_allow_html=True)
+                
+                # Add some spacing between conversation pairs
+                st.markdown("<br>", unsafe_allow_html=True)
+        
+        # Chat input at the bottom
         user_input = st.chat_input("Ask me anything...")
         
         if user_input:
@@ -185,7 +263,7 @@ if llm and tools:
                     
                 except Exception as e:
                     st.error(f"Error: {str(e)}")
-    
+
     with tab2:
         st.subheader("📊 Example Queries")
         
